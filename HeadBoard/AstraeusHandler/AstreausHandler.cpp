@@ -1,10 +1,15 @@
 /**
  * Handles data received from the Astraeus board.
- * Responsiblities: Receives Astraeus packages. Monitor 
+ * Responsiblities: Receives Astraeus packages. Monitor Astraeus and send interrupts when necessary
 */
 
-int main(int argc, char const *argv[])
+// include statements from C/C++ library and/or Astraeus
+
+// Skeleton code
+int main(int argc, char *argv[])
 {
-    /* code */
+    while(1) {
+        ;
+    }
     return 0;
 }
