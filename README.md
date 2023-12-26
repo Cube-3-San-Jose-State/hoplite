@@ -4,5 +4,4 @@ Hands-On Prototyping Lab for Innovation, Testing, and Experimentation by Cube³.
 - Raspberry Pi SSH instructions:
 With Pi plugged in and connected to wifi network or wired through ethernet, run ```arp -a``` to find Pi's IP. With that, run ```ssh hoplite@[ip]```See discord channel pins for password.
 
-- Connecting to wifi (headless):
-Run ```sudo raspi-config``` and go into system settings, then to wifi.
+Note: When wired through an ethernet cable, we have seen issues in connecting to certain websites (problem seems to be related to ipv6). Certain websites, notably Github aren't reachable.
