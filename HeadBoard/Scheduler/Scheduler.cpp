@@ -9,6 +9,7 @@
 #pragma once
 #include <iostream>
 #include <queue>
+#include <set>
 #include <string>
 #include <thread>
 
@@ -31,6 +32,7 @@ class Scheduler {
    private:
     int current_id;
     std::priority_queue<Task> tasks;
+    std::set<int> to_delete;
 
     bool execute_task(Task task) {
         task.function();
@@ -58,9 +60,7 @@ class Scheduler {
         return task->id;
     }
 
-    void schedule_delete(int id) {
-        // TODO: implement
-    }
+    void schedule_delete(int id) { to_delete.insert(id); }
 
     void start() {
         // Start the scheduler
@@ -70,6 +70,10 @@ class Scheduler {
                 // TODO: figure out execute time
                 tasks.pop();
                 task = tasks.top();
+                if (to_delete.find(task.id) != to_delete.end()) {
+                    tasks.pop();
+                    to_delete.erase(task.id);
+                }
             }
         }
     }
