@@ -103,6 +103,7 @@ class Scheduler {
                     if (to_delete.find(task.id) != to_delete.end()) {
                         // delete and do not execute if needed
                         to_delete.erase(task.id);
+                        std::cout << "Deleting task " << task.id << std::endl;
                     } else {
                         // execute if not deleted
                         execute_task(task);
@@ -123,7 +124,8 @@ int main() {
 
     // schedule 3 tasks
     int id1 = scheduler.schedule_once(in_one_second, []() { std::cout << "one second once" << std::endl; });
-    int id2 = scheduler.schedule_interval(in_one_second, std::chrono::milliseconds(500), []() { std::cout << "one second repeating" << std::endl; }, 5);
+    int id2 = scheduler.schedule_interval(
+        in_one_second, std::chrono::milliseconds(500), []() { std::cout << "one second repeating" << std::endl; }, 5);
     int id3 = scheduler.schedule_once(in_three_seconds, []() { std::cout << "three seconds once" << std::endl; });
 
     // delete first task
