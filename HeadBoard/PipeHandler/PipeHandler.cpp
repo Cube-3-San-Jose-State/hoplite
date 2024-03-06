@@ -1,6 +1,9 @@
 #include "PipeHandler.h"
 #include <filesystem>
+#include <sstream>
 #include <string>
+#include <iostream>
+#include <fstream>
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -46,13 +49,32 @@ PipeHandler::~PipeHandler()
 
 std::string PipeHandler::read() const
 {
+	ifstream readPipe(_inPipe);
 
+	if(!readPipe.is_open())
+	{
+		cerr << "Could not read from pipe, fs error" << endl;
+		return "";
+	}
+
+	stringstream command;
+	command << readPipe.rdbuf();
+	readPipe.close();
+	return command.str();
 }
 
 
 void PipeHandler::write(std::string command)
 {
+	ofstream writePipe(_outPipe);
 
+	if(!writePipe.is_open())
+	{
+		cerr << "Could write to pipe, fs error" << endl;
+	}
+
+	writePipe << command << endl;
+	writePipe.close();
 }
 
 
