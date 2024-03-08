@@ -1,4 +1,3 @@
 .vscode
-/HeadBoard/hoplite_env
 # ignore compiled pipe handler example
 HeadBoard/PipeHandler/a.out
