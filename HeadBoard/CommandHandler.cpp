@@ -8,36 +8,38 @@
 #include <sys/stat.h>   // Used for printing file info
 #include <sys/types.h>  // Used for extra type capabilities
 #include <unistd.h>     // Used for extra type capabilities
+#include <cstdlib>
+#include <signal.h>
+#include "./lib/pipe.h"
 
-struct Pipe {
-    int status;
-    const char *path;
-    char incoming[128], outgoing[128];
-    Pipe(const char *p) : path(p){
-        mkfifo(path, 0666);
-    }
-};
+Pipe incoming_radio("/tmp/radio_to_main_pipe");
+// Pipe outgoing_radio("/tmp/main_to_radio");
+
+void close_pipes_on_exit(int signum){
+    printf("\nExit detected. Closing pipes...");
+    close(incoming_radio.status);
+    exit(signum);
+}
 
 int main(int argc, char const *argv[])
 {
-    Pipe radio_to_main("/tmp/radio_to_main_pipe");
+    signal(SIGINT, close_pipes_on_exit);
 
+    incoming_radio.status = open(incoming_radio.path, O_RDONLY | O_NONBLOCK);
     while (1)
     {
         // First open in read only and read
-        radio_to_main.status = open(radio_to_main.path, O_RDONLY);
-        read(radio_to_main.status, radio_to_main.incoming, 128);
- 
-        // Print the read string and close
-        printf("From Radio: %s\n", radio_to_main.incoming);
-        close(radio_to_main.status);
- 
+        if ( read(incoming_radio.status, incoming_radio.incoming, 128) > 0){
+            printf("received command: %s\n", incoming_radio.incoming);
+        }
+
         // Now open in write mode and write
         // string taken from user.
-        radio_to_main.status = open(radio_to_main.path, O_WRONLY);
-        fgets(radio_to_main.outgoing, 80, stdin);
-        write(radio_to_main.status, radio_to_main.outgoing, strlen(radio_to_main.outgoing)+1);
-        close(radio_to_main.status);
+        // incoming_radio.status = open(incoming_radio.path, O_WRONLY);
+        // fgets(incoming_radio.outgoing, 80, stdin);
+        // write(incoming_radio.status, incoming_radio.outgoing, strlen(incoming_radio.outgoing)+1);
+        // close(incoming_radio.status);
+        sleep(1);
     }
     return 0;
 }
