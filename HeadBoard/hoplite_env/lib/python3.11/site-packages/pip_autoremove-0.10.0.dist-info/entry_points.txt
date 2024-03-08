@@ -1,0 +1,3 @@
+[console_scripts]
+pip-autoremove = pip_autoremove:main
+
