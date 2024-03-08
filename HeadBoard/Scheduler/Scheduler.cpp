@@ -4,6 +4,7 @@
 #include <set>
 #include <string>
 #include <thread>
+#include "../lib/pipe.h"
 
 using Time = std::chrono::time_point<std::chrono::system_clock>;
 

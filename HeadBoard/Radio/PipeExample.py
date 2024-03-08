@@ -25,4 +25,3 @@ while True:
 
     # Print the read message
     print(f'From Command Handler: {read_data}', end="")
-                
