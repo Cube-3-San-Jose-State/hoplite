@@ -13,10 +13,9 @@
 #include "./lib/pipe.h"
 
 Pipe incoming_radio("/tmp/radio_to_main_pipe");
-// Pipe outgoing_radio("/tmp/main_to_radio");
 
 void close_pipes_on_exit(int signum){
-    printf("\nExit detected. Closing pipes...");
+    printf("\nCMD Handler: Exit detected. Closing pipes...\n");
     close(incoming_radio.status);
     exit(signum);
 }
@@ -25,12 +24,15 @@ int main(int argc, char const *argv[])
 {
     signal(SIGINT, close_pipes_on_exit);
 
+    printf("CMD Handler: waiting for radio end...\n");
     incoming_radio.status = open(incoming_radio.path, O_RDONLY | O_NONBLOCK);
+    printf("CMD Handler: Radio pipe opened!\n");
+
     while (1)
     {
         // First open in read only and read
         if ( read(incoming_radio.status, incoming_radio.incoming, 128) > 0){
-            printf("received command: %s\n", incoming_radio.incoming);
+            printf("CMD Handler: received command: %s\n", incoming_radio.incoming);
         }
 
         // Now open in write mode and write
