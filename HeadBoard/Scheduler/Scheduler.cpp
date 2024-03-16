@@ -4,6 +4,7 @@
 #include <set>
 #include <string>
 #include <thread>
+
 #include "../lib/pipe.h"
 
 using Time = std::chrono::time_point<std::chrono::system_clock>;
@@ -55,7 +56,6 @@ class Scheduler {
         return true;
     }
 
-   public:
     /**
      * Adds a one-time task to the scheduler.
      * @param execute_time: time at which the task is to be executed
@@ -91,6 +91,43 @@ class Scheduler {
      */
     void schedule_delete(int id) { to_delete.insert(id); }
 
+   public:
+    /**
+     * Wrapper for schedule_once to schedule a one-time string command.
+     * @param execute_time: time at which the task is to be executed
+     * @param command: function to be scheduled
+     * @return id of the task
+     */
+    int schedule_command_once(Time execute_time, std::string command) {
+        // TODO: write function
+        return schedule_once(execute_time, []() {
+
+        });
+    }
+
+    /**
+     * Wrapper for schedule_interval to schedule a repeating string command.
+     * @param initial_time: time at which the task is to be executed
+     * @param repeat_interval_ms: interval at which the task is to be repeated
+     * @param command: command to be scheduled
+     * @param repeat_count: number of times the task is to be repeated (default: INT32_MAX)
+     */
+    int schedule_command_interval(Time initial_time, std::chrono::milliseconds repeat_interval, std::string command, int repeat_count = INT32_MAX) {
+        // TODO: write function
+        return schedule_interval(
+            initial_time, repeat_interval,
+            []() {
+
+            },
+            repeat_count);
+    }
+
+    /**
+     * Wrapper for schedule_delete.
+     * @param id: id of the task to be deleted
+     */
+    void schedule_command_delete(int id) { schedule_delete(id); }
+
     /**
      * Starts the scheduler
      */
@@ -124,13 +161,12 @@ int main() {
     std::chrono::time_point<std::chrono::system_clock> in_three_seconds = std::chrono::system_clock::now() + std::chrono::seconds(3);
 
     // schedule 3 tasks
-    int id1 = scheduler.schedule_once(in_one_second, []() { std::cout << "one second once" << std::endl; });
-    int id2 = scheduler.schedule_interval(
-        in_one_second, std::chrono::milliseconds(500), []() { std::cout << "one second repeating" << std::endl; }, 5);
-    int id3 = scheduler.schedule_once(in_three_seconds, []() { std::cout << "three seconds once" << std::endl; });
+    int id1 = scheduler.schedule_command_once(in_one_second, "one second once");
+    int id2 = scheduler.schedule_command_interval(in_one_second, std::chrono::milliseconds(500), "one second repeating");
+    int id3 = scheduler.schedule_command_once(in_three_seconds, "three seconds once");
 
     // delete first task
-    scheduler.schedule_delete(id1);
+    scheduler.schedule_command_delete(id1);
 
     scheduler.start();
 
