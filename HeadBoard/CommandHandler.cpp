@@ -50,8 +50,7 @@ int main(int argc, char const *argv[])
             printf("CMD Handler: from Radio: received command: %s\n", incoming_radio.incoming);
         }
 
-        write(outgoing_scheduler.status, )
-        write(outgoing_astraeus.status, astraeus_test_requesttest_request.c_str(), astraeus_test_requesttest_request.size()+1);
+        write(outgoing_astraeus.status, astraeus_test_request.c_str(), astraeus_test_request.size()+1);
         sleep(1);
     }
     return 0;
