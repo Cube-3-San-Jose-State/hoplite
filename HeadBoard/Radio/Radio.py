@@ -57,10 +57,11 @@ while True:
     # Listen for anything
     packet = rfm9x.receive() or None
     if packet is None:
-        print("Radio: Waiting for packet...")
+        pass
+        # print("Radio: Waiting for packet...")
     else:
         packet_text = packet.decode()
         print("Radio: Received" + packet_text + ". Sending to CMD Handler")
         os.write(outgoing_main.status.fileno(), packet)
     
-    time.sleep(0.1)
+    time.sleep(1)
