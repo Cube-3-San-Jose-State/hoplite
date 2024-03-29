@@ -5,7 +5,7 @@
 #include <string>
 #include <thread>
 
-#include "../lib/pipe.h"
+#include "../IPCQueue/IPCQueue.h"
 
 using Time = std::chrono::time_point<std::chrono::system_clock>;
 
@@ -18,24 +18,24 @@ using Time = std::chrono::time_point<std::chrono::system_clock>;
  * function: function to be executed
  */
 struct Task {
-    Task(int id, Time time, std::chrono::milliseconds repeat_interval_ms, int repeat_count, void (*function)()) {
+    Task(int id, Time time, std::chrono::milliseconds repeat_interval_ms, int repeat_count, std::string command) {
         this->id = id;
         this->time = time;
         this->repeat_interval_ms = repeat_interval_ms;
         this->repeat_count = repeat_count;
-        this->function = function;
+        this->command = command;
     }
     int id;
     Time time;
     std::chrono::milliseconds repeat_interval_ms;
     int repeat_count;
-    void (*function)();
+    std::string command;
 };
 
 class Scheduler {
    private:
-    // FIXME: current_id sometimes does not start at 1, but jumps to a random number
     int current_id;
+    IPCQueue* incoming_cmd_handler;
     static bool TaskComparator(Task a, Task b) { return a.time > b.time; };
     std::priority_queue<Task, std::vector<Task>, decltype(&TaskComparator)> tasks{&TaskComparator};
     std::set<int> to_delete;
@@ -46,7 +46,7 @@ class Scheduler {
      * @return true if the task was executed successfully
      */
     bool execute_task(Task task) {
-        task.function();
+        incoming_cmd_handler->write(task.command);  // TODO: write correct command
         // reschedule if needed
         if (task.repeat_count > 1) {
             task.repeat_count--;
@@ -56,16 +56,22 @@ class Scheduler {
         return true;
     }
 
+   public:
+    Scheduler() {
+        current_id = 0;
+        incoming_cmd_handler = new IPCQueue("scheduler");
+    }
+
     /**
      * Adds a one-time task to the scheduler.
      * @param execute_time: time at which the task is to be executed
-     * @param function: function to be executed
+     * @param command: command to be sent
      * @return id of the task
      */
-    int schedule_once(Time execute_time, void (*function)()) {
+    int schedule_once(Time execute_time, std::string command) {
         current_id++;
         // create task and add to queue
-        Task* task = new Task(current_id, execute_time, std::chrono::milliseconds(0), 0, function);
+        Task* task = new Task(current_id, execute_time, std::chrono::milliseconds(0), 0, command);
         tasks.push(*task);
         return task->id;
     }
@@ -74,13 +80,13 @@ class Scheduler {
      * Adds a repeated task to the scheduler.
      * @param initial_time: time at which the task is to be executed
      * @param repeat_interval_ms: interval at which the task is to be repeated
-     * @param function: function to be executed
+     * @param command: command to be sent
      * @param repeat_count: number of times the task is to be repeated (default: INT32_MAX)
      */
-    int schedule_interval(Time initial_time, std::chrono::milliseconds repeat_interval, void (*function)(), int repeat_count = INT32_MAX) {
+    int schedule_interval(Time initial_time, std::chrono::milliseconds repeat_interval, std::string command, int repeat_count = INT32_MAX) {
         current_id++;
         // create task and add to queue
-        Task* task = new Task(current_id, initial_time, repeat_interval, repeat_count, function);
+        Task* task = new Task(current_id, initial_time, repeat_interval, repeat_count, command);
         tasks.push(*task);
         return task->id;
     }
@@ -91,48 +97,18 @@ class Scheduler {
      */
     void schedule_delete(int id) { to_delete.insert(id); }
 
-   public:
-    /**
-     * Wrapper for schedule_once to schedule a one-time string command.
-     * @param execute_time: time at which the task is to be executed
-     * @param command: function to be scheduled
-     * @return id of the task
-     */
-    int schedule_command_once(Time execute_time, std::string command) {
-        // TODO: write function
-        return schedule_once(execute_time, []() {
-
-        });
-    }
-
-    /**
-     * Wrapper for schedule_interval to schedule a repeating string command.
-     * @param initial_time: time at which the task is to be executed
-     * @param repeat_interval_ms: interval at which the task is to be repeated
-     * @param command: command to be scheduled
-     * @param repeat_count: number of times the task is to be repeated (default: INT32_MAX)
-     */
-    int schedule_command_interval(Time initial_time, std::chrono::milliseconds repeat_interval, std::string command, int repeat_count = INT32_MAX) {
-        // TODO: write function
-        return schedule_interval(
-            initial_time, repeat_interval,
-            []() {
-
-            },
-            repeat_count);
-    }
-
-    /**
-     * Wrapper for schedule_delete.
-     * @param id: id of the task to be deleted
-     */
-    void schedule_command_delete(int id) { schedule_delete(id); }
-
     /**
      * Starts the scheduler
      */
     void start() {
         while (true) {
+            // get new tasks
+            std::string command = incoming_cmd_handler->read();
+            if (!command.empty()) {
+                std::cout << "Received command: " << command << std::endl;  // TODO: schedule it
+            }
+
+            // check if there are tasks
             if (!tasks.empty()) {
                 // get next task
                 Task task = tasks.top();
@@ -161,12 +137,12 @@ int main() {
     std::chrono::time_point<std::chrono::system_clock> in_three_seconds = std::chrono::system_clock::now() + std::chrono::seconds(3);
 
     // schedule 3 tasks
-    int id1 = scheduler.schedule_command_once(in_one_second, "one second once");
-    int id2 = scheduler.schedule_command_interval(in_one_second, std::chrono::milliseconds(500), "one second repeating");
-    int id3 = scheduler.schedule_command_once(in_three_seconds, "three seconds once");
+    int id1 = scheduler.schedule_once(in_one_second, "one second once");
+    int id2 = scheduler.schedule_interval(in_one_second, std::chrono::milliseconds(500), "one second repeating");
+    int id3 = scheduler.schedule_once(in_three_seconds, "three seconds once");
 
     // delete first task
-    scheduler.schedule_command_delete(id1);
+    scheduler.schedule_delete(id1);
 
     scheduler.start();
 
