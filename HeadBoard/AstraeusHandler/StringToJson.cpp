@@ -9,49 +9,58 @@
 #include <sstream>
 #include <unordered_map>
 
+// Function to check if char is whitespace
 bool isWhitespace(char ch) {
     return ch == ' ' || ch == '\t' || ch == '\n';
 }
 
+// Function to extract string in double quotes
 std::string extractString(std::string& str, int& i) {
-    i++;
+    i++; // Skip opening quote
     std::string value;
     while(i < str.length() && str[i] != '"') {
         value += str[i];
         i++;
     }
-    i++;
+    i++; // Skip closing quote
     return value;
 }
 
+// Function to parse JSON key-value pair with type conversion
 std::pair<std::string, std::any> parseKeyValuePair(std::string& str, int& i) {
+    
+    // Skip whitespace
     while(isWhitespace(str[i])) {
         i++;
     }
 
+    // Extract key
     std::string key = extractString(str, i);
 
+    // Error handling: check for colon
     if (str[i] != ':') {
         return {"", ""};
     }
     i++;
 
+    // Skip whitespace
     while(isWhitespace(str[i])) {
         i++;
     }
 
+    // Extract value
     std::string initialValue = extractString(str, i);
     std::any value;
     
     try {
-        // Attempt to convert to double
+        // Convert to double
         value = std::stod(initialValue);
     } catch (const std::invalid_argument&) {
         try {
         // If double conversion fails, try int
         value = std::stoi(initialValue);
         } catch (const std::invalid_argument&) {
-        // If both conversions fail, keep as string
+        // If both conversion fail, keep as string
         value = initialValue;
         }
     }
@@ -59,15 +68,18 @@ std::pair<std::string, std::any> parseKeyValuePair(std::string& str, int& i) {
     return {key,value};
 }
 
+// Function to parse string to JSON object with type conversion
 std::unordered_map<std::string, std::any> stringToJson(std::string& str) {
     std::unordered_map<std::string, std::any> json;
     int i = 0;
 
+    // Error handling: skip opening curly brace
     if (str[i] != '{') {
         return json;
     }
     i++;
 
+    // Parse key-value pairs until closing curly brace
     while (i < str.length() && str[i] != '}') {
         
         std::pair<std::string, std::any> keyValue = parseKeyValuePair(str, i);
@@ -75,6 +87,8 @@ std::unordered_map<std::string, std::any> stringToJson(std::string& str) {
         if (!keyValue.first.empty()) {
             json[keyValue.first] = keyValue.second;
         }
+
+        // Skip whitespace and comma
         while (isWhitespace(str[i])) {
             i++;
         }
@@ -83,6 +97,7 @@ std::unordered_map<std::string, std::any> stringToJson(std::string& str) {
         }
     }
 
+    // Error handling: skip closing curly brace
     if (str[i] != '}') {
         return json;
     }
