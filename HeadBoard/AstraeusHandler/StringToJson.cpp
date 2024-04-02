@@ -1,6 +1,6 @@
 /**
- * JSON Parser for incoming and outgoing Pipes. Converts to double, then int, then strings.
- * Responsiblities: Converts incoming and outgoing strings into JSON objects of type double, int, and string.
+ * JSON deserializer for incoming and outgoing pipes. Tries to convert values to double, then int, then strings.
+ * Responsiblities: Deserialize/converts incoming and outgoing strings into JSON objects of type double, int, and then string.
 */
 
 // include statements from C/C++ library and/or Astraeus
