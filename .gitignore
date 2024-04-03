@@ -1,3 +1,6 @@
 .vscode
 # ignore compiled pipe handler example
 HeadBoard/PipeHandler/a.out
+# ignore build files for IPCQueue
+HeadBoard/IPCQueue/*.so
+HeadBoard/IPCQueue/.build_env
