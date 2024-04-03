@@ -65,7 +65,7 @@ IPCQueue::~IPCQueue()
 		// destroy queues
 		int out = msgctl(_out_qid, IPC_RMID, NULL);
 		int in = msgctl(_in_qid, IPC_RMID, NULL);
-		// cout << "removed out: " << out << "\nremoved in: " << in << endl;
+		cout << "IPCQueue: removed out: " << out << "\nIPCQueue: removed in: " << in << endl;
 		// delete queue file
 		fs::remove(_queueFile);
 	}

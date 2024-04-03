@@ -11,29 +11,22 @@
 #include <unistd.h>     // Used for extra type capabilities
 #include <cstdlib>
 #include <signal.h>
+#include <iostream>
 #include "../lib/pipe.h"
+#include "../lib/IPCQueue/IPCQueue.h"
 
-Pipe incoming_astraeus("/tmp/astraeus_to_main_pipe");
-
-void close_pipes_on_exit(int signum){
-    printf("\nCMD Handler: Exit detected. Closing pipes...\n");
-    close(incoming_astraeus.status);
-    exit(signum);
-}
+IPCQueue cmd_handler("astraeus");
 
 int main(int argc, char const *argv[])
 {
-    signal(SIGINT, close_pipes_on_exit);
-
-    /* Temp code for testing pipes... */
-    printf("Astraeus Handler: waiting for Astraeus end...\n");
-    incoming_astraeus.status = open(incoming_astraeus.path, O_RDONLY | O_NONBLOCK);
-    printf("Astraeus Handler: Astraeus pipe opened!\n");
-
+    printf("Astraeus Handler: OK!\n");
     while(1) {
-        if ( read(incoming_astraeus.status, incoming_astraeus.incoming, 128) > 0){
-            printf("Astraeus Handler: from CMD Handler: received command: %s\n", incoming_astraeus.incoming);
+        std::string received = cmd_handler.read();        
+        if ( received.length() > 0) {
+            printf("Astraeus handler: received: %s\n", received.c_str());
         }
+        sleep(1);
     }
+
     return 0;
 }

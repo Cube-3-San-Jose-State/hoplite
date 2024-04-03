@@ -5,26 +5,36 @@
 
 # May need to be converted to make/cmake later on depending on how complicated this gets
 
-#Activate for Radio virtual environment
+# Clear all pipes
+rm -rf /tmp/hoplite/
+
+# Activate for Radio virtual environment
 source ./hoplite_env/bin/activate
+
+# Compile IPCQueue python module
+# cd ./lib/IPCQueue
+# chmod u+x compile_bindings.sh
+# ./compile_bindings.sh
+# cd ../../
 
 # Start cmd handler
 echo "Main: initializing CMD Handler..." 
-g++ CommandHandler.cpp -o CommandHandler && ./CommandHandler &
-echo "Main: CMD Handler OK!"
+g++ CommandHandler.cpp ./lib/IPCQueue/IPCQueue.cpp -o CommandHandler && ./CommandHandler &
+
+sleep 1
 
 # Start astraeus
 cd ./AstraeusHandler
 echo "Main: initializing Astraeus Handler..."
-g++ AstraeusHandler.cpp -o AstraeusHandler && ./AstraeusHandler &
-echo "Main: Astraeus Handler OK!"
+g++ AstraeusHandler.cpp ../lib/IPCQueue/IPCQueue.cpp -o AstraeusHandler && ./AstraeusHandler &
 cd ..
+
+sleep 1
 
 # Start radio
 cd ./Radio
 echo "Main: initializing Radio..."
 python3 Radio.py &
-echo "Main: Radio OK!"
 cd ..
 
 # Kill all processes on exit
