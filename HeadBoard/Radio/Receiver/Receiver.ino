@@ -2,7 +2,7 @@
 #include <SPI.h>
 #include <RH_RF95.h>
 // JSON Handler code
-#include <Arduino_JSON.h>
+#include <ArduinoJson.h>
 
 // Define pins and frequecy
 #define RFM95_CS    8
@@ -48,20 +48,32 @@ void setup() {
   rf95.setTxPower(23, false);
 }
 
+/*
+  Packet Structure:
+  {
+    String process; // "RADIO" or "SCHEDULER" or "ASTRAEUS"
+    String dir; // "INCOMING" or "OUTGOING" (with respect to CMD Handler)
+    String function; //"REQ_TEL" or "REQ_PAST_HUNDRED" or "REQ_PAST_HOUR" or "SCHED_ONCE" or "SCHED_INTVL" or "SCHED_LIST" or "SCHED_CANCEL"
+    String[] arguments;
+  }
+*/
+
 void loop() {
-  delay(1000); // Wait 1 second between transmits, could also 'sleep' here!
-  JSONVar test_packet;
-  test_packet["command"] = "R_T";
-  test_packet["parameter"] = (int) 1111111;
-  String test_packet_string = JSON.stringify(test_packet);
-  Serial.print(test_packet_string);
+  delay(1000);
 
-  Serial.println("Transmitting basic message..."); // Send a message to rf95_server
-
-  // char radiopacket[20] = "Basic send";
-  Serial.print("Sending:"); 
+  // Create json test packet
+  JsonDocument test_packet;
+  String test_packet_string;
+  test_packet["process"] = "ASTRAEUS";
+  test_packet["dir"] = "OUTGOING";
+  test_packet["function"] = "REQ_TEL";
+  test_packet["arguments"][0] = "11111111";
+  serializeJson(test_packet, test_packet_string);
+  
   Serial.println(test_packet_string);
 
-  delay(10);
+  // Send serialized packet
+  Serial.print("Sending:"); 
+  Serial.println(test_packet_string);
   rf95.send((uint8_t *)test_packet_string.c_str(), test_packet_string.length());
 }

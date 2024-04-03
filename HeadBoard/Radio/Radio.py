@@ -6,6 +6,10 @@ from digitalio import DigitalInOut, Direction, Pull     # allows for digital inp
 import os               # used for creating pipe
 import signal
 import sys
+import atexit
+sys.path.insert(0, os.path.abspath('../lib/IPCQueue'))
+from IPCQueue import IPCQueue
+
 '''
     Responsiblities: 
         Receives commands from ground control.
@@ -20,30 +24,9 @@ CS = DigitalInOut(board.CE1)
 RESET = DigitalInOut(board.D25)
 spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
 
-class Pipe:
-    def __init__(self, path):
-        self.status = None
-        self.path = path
-        self.outgoing = [''] * 256
-        self.incoming = [''] * 256
-        
-        # Create a FIFO pipe if it does not exist
-        if not os.path.exists(self.path):
-            os.mkfifo(self.path)
-outgoing_main = Pipe("/tmp/radio_to_main_pipe")
+cmd_handler = IPCQueue("radio")
 
-# Close pipes on Ctrl-C
-def signal_handler(sig, frame):
-    print("\nRadio Handler: Exit detected. Closing pipes...\n")
-    os.close(outgoing_main.status.fileno())
-    sys.exit(0)
-signal.signal(signal.SIGINT, signal_handler)
-
-# Open Radio-CMD Handler pipe
-print("Radio: waiting for CMD Handler end...")
-outgoing_main.status = open(outgoing_main.path, "w")
-print("Radio: CMD Handler pipe connected!")
-
+print("Radio: OK!")
 # Listen for radio, send up to command handler
 while True:
     # Detect local rfm9x
@@ -53,15 +36,19 @@ while True:
     except RuntimeError as error:
         print("Radio: RFM9x not found :( Sleeping for 3 seconds:  ", error)
         time.sleep(3)
-    
-    # Listen for anything
+
+    # Check if anything needs to be sent down
+    downlink_buffer = cmd_handler.read()
+
+    # Listen for comms from radio
     packet = rfm9x.receive() or None
     if packet is None:
         pass
-        # print("Radio: Waiting for packet...")
+        print("Radio: Checking for packet...")
     else:
+        print("Radio: Buffer is currently: " + str(downlink_buffer))
         packet_text = packet.decode()
-        print("Radio: Received" + packet_text + ". Sending to CMD Handler")
-        os.write(outgoing_main.status.fileno(), packet)
+        print("Radio: Received: " + packet_text + ". Sending to CMD Handler")
+        cmd_handler.write(packet)
     
     time.sleep(1)
