@@ -26,7 +26,7 @@ sleep 1
 # Start astraeus
 cd ./AstraeusHandler
 echo "Main: initializing Astraeus Handler..."
-g++ AstraeusHandler.cpp ../lib/IPCQueue/IPCQueue.cpp -o AstraeusHandler && ./AstraeusHandler &
+g++ AstraeusHandler.cpp ../lib/IPCQueue/IPCQueue.cpp -lwiringPi -o AstraeusHandler && ./AstraeusHandler &
 cd ..
 
 sleep 1

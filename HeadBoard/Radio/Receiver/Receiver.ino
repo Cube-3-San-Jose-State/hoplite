@@ -5,16 +5,17 @@
 #include <ArduinoJson.h>
 
 // Define pins and frequecy
-#define RFM95_CS    8
-#define RFM95_INT   3
-#define RFM95_RST   4
+#define RFM95_CS 8
+#define RFM95_INT 3
+#define RFM95_RST 4
 
 #define RF95_FREQ 915.0
 
 // Instantiate
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
-void setup() {
+void setup()
+{
   pinMode(RFM95_RST, OUTPUT);
   digitalWrite(RFM95_RST, HIGH);
 
@@ -29,18 +30,23 @@ void setup() {
   digitalWrite(RFM95_RST, HIGH);
   delay(10);
 
-  while (!rf95.init()) {
+  while (!rf95.init())
+  {
     Serial.println("Radio init failed");
-    while (1);
+    while (1)
+      ;
   }
   Serial.println("Radio init OK!");
 
   // Changes frequency from default to 915.0MHz
-  if (!rf95.setFrequency(RF95_FREQ)) {
+  if (!rf95.setFrequency(RF95_FREQ))
+  {
     Serial.println("setFrequency failed");
-    while (1);
+    while (1)
+      ;
   }
-  Serial.print("Set Freq to: "); Serial.println(RF95_FREQ);
+  Serial.print("Set Freq to: ");
+  Serial.println(RF95_FREQ);
 
   // The default transmitter power is 13dBm, using PA_BOOST.
   // If you are using RFM95/96/97/98 modules which uses the PA_BOOST transmitter pin, then
@@ -58,7 +64,8 @@ void setup() {
   }
 */
 
-void loop() {
+void loop()
+{
   delay(1000);
 
   // Create json test packet
@@ -69,11 +76,11 @@ void loop() {
   test_packet["function"] = "REQ_TEL";
   test_packet["arguments"][0] = "11111111";
   serializeJson(test_packet, test_packet_string);
-  
+
   Serial.println(test_packet_string);
 
   // Send serialized packet
-  Serial.print("Sending:"); 
+  Serial.print("Sending:");
   Serial.println(test_packet_string);
   rf95.send((uint8_t *)test_packet_string.c_str(), test_packet_string.length());
 }

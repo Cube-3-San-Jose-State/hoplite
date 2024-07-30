@@ -4,3 +4,5 @@ HeadBoard/PipeHandler/a.out
 # ignore build files for IPCQueue
 HeadBoard/IPCQueue/*.so
 HeadBoard/IPCQueue/.build_env
+# ignore virtual env
+HeadBoard/hoplite_env/*

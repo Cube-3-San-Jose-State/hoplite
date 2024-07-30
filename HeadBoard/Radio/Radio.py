@@ -44,9 +44,7 @@ while True:
     packet = rfm9x.receive() or None
     if packet is None:
         pass
-        print("Radio: Checking for packet...")
     else:
-        print("Radio: Buffer is currently: " + str(downlink_buffer))
         packet_text = packet.decode()
         print("Radio: Received: " + packet_text + ". Sending to CMD Handler")
         cmd_handler.write(packet)
